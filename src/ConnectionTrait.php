@@ -184,7 +184,7 @@ trait ConnectionTrait
         }
     }
 
-    public function prepare(string $sql): Driver\Statement
+    public function prepare(string $sql): Statement
     {
         return $this->prepareWrapped($sql);
     }
@@ -192,7 +192,7 @@ trait ConnectionTrait
     /**
      * returns a reconnect-wrapper for Statements.
      */
-    protected function prepareWrapped(string $sql): Driver\Statement
+    protected function prepareWrapped(string $sql): Statement
     {
         /** @var DBALConnection&ConnectionInterface $this */
         $stmt = new Statement($sql, $this);
