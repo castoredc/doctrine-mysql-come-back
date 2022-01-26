@@ -11,6 +11,7 @@ use Doctrine\DBAL\Connection as DBALConnection;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\FetchMode;
+use Doctrine\DBAL\Result;
 use Exception;
 use Facile\DoctrineMySQLComeBack\Doctrine\DBAL\Driver\ServerGoneAwayExceptionsAwareInterface;
 use InvalidArgumentException;
@@ -61,16 +62,14 @@ trait ConnectionTrait
     }
 
     /**
-     * @param string $query
+     * @param string $sql
      * @param array $params
      * @param array $types
      * @param QueryCacheProfile $qcp
      *
-     * @return ResultStatement The executed statement.
-     *
      * @throws Exception
      */
-    public function executeQuery($query, array $params = array(), $types = array(), QueryCacheProfile $qcp = null)
+    public function executeQuery(string $sql, array $params = array(), $types = array(), QueryCacheProfile $qcp = null): Result
     {
         $stmt = null;
         $attempt = 0;
@@ -78,9 +77,9 @@ trait ConnectionTrait
         while ($retry) {
             $retry = false;
             try {
-                $stmt = parent::executeQuery($query, $params, $types, $qcp);
+                $stmt = parent::executeQuery($sql, $params, $types, $qcp);
             } catch (Exception $e) {
-                if ($this->canTryAgain($attempt) && $this->isRetryableException($e, $query)) {
+                if ($this->canTryAgain($attempt) && $this->isRetryableException($e, $sql)) {
                     $this->close();
                     ++$attempt;
                     $retry = true;
@@ -93,22 +92,17 @@ trait ConnectionTrait
         return $stmt;
     }
 
-    /**
-     * @return \Doctrine\DBAL\Driver\Statement
-     * @throws Exception
-     */
-    public function query()
+    public function query(string $sql): Driver\Result
     {
         $stmt = null;
-        $args = func_get_args();
         $attempt = 0;
         $retry = true;
         while ($retry) {
             $retry = false;
             try {
-                $stmt = parent::query(...$args);
+                $stmt = parent::query($sql);
             } catch (Exception $e) {
-                if ($this->canTryAgain($attempt) && $this->isRetryableException($e, $args[0])) {
+                if ($this->canTryAgain($attempt) && $this->isRetryableException($e, $sql)) {
                     $this->close();
                     ++$attempt;
                     $retry = true;
@@ -191,24 +185,15 @@ trait ConnectionTrait
         }
     }
 
-    /**
-     * @param $sql
-     *
-     * @return Statement
-     */
-    public function prepare($sql)
+    public function prepare(string $sql): Driver\Statement
     {
         return $this->prepareWrapped($sql);
     }
 
     /**
      * returns a reconnect-wrapper for Statements.
-     *
-     * @param $sql
-     *
-     * @return Statement
      */
-    protected function prepareWrapped($sql)
+    protected function prepareWrapped(string $sql): Driver\Statement
     {
         /** @var DBALConnection&ConnectionInterface $this */
         $stmt = new Statement($sql, $this);
