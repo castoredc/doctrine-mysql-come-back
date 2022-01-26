@@ -9,7 +9,6 @@ use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection as DBALConnection;
 use Doctrine\DBAL\Driver;
-use Doctrine\DBAL\Driver\ResultStatement;
 use Doctrine\DBAL\FetchMode;
 use Doctrine\DBAL\Result;
 use Exception;
@@ -92,7 +91,7 @@ trait ConnectionTrait
         return $stmt;
     }
 
-    public function query(string $sql): Driver\Result
+    public function query(string $sql): Result
     {
         $stmt = null;
         $attempt = 0;
